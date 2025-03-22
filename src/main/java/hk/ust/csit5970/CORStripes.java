@@ -43,6 +43,19 @@ public class CORStripes extends Configured implements Tool {
 			/*
 			 * TODO: Your implementation goes here.
 			 */
+			while (doc_tokenizer.hasMoreTokens()) {
+				String word = doc_tokenizer.nextToken();
+				if (word_set.containsKey(word)) {
+						word_set.put(word, word_set.get(word) + 1);
+				} else {
+						word_set.put(word, 1);
+				}
+			}
+
+			for (Map.Entry<String, Integer> entry : word_set.entrySet()) {
+				context.write(new Text(entry.getKey()), new IntWritable(entry.getValue()));
+			}
+
 		}
 	}
 
@@ -56,6 +69,11 @@ public class CORStripes extends Configured implements Tool {
 			/*
 			 * TODO: Your implementation goes here.
 			 */
+			int sum_count = 0;
+			for (IntWritable val : values) {
+				sum_count += val.get();
+			}
+			context.write(key, new IntWritable(sum_count));
 		}
 	}
 
@@ -75,6 +93,22 @@ public class CORStripes extends Configured implements Tool {
 			/*
 			 * TODO: Your implementation goes here.
 			 */
+			MapWritable mapWritable = new MapWritable();
+			for (String word : sorted_word_set) {
+				for (String coWord : sorted_word_set) {
+					if (!word.equals(coWord)) {
+						IntWritable count = (IntWritable) mapWritable.get(new Text(coWord));
+						if (count == null) {
+							mapWritable.put(new Text(coWord), new IntWritable(1));
+						}
+						else {
+							count.set(count.get() + 1);
+						}
+					}
+				}
+				context.write(new Text(word), mapWritable);
+				mapWritable.clear();
+			}
 		}
 	}
 
@@ -89,6 +123,21 @@ public class CORStripes extends Configured implements Tool {
 			/*
 			 * TODO: Your implementation goes here.
 			 */
+			MapWritable result_to_Map = new MapWritable();
+			for (MapWritable value : values) {
+				for (Map.Entry<Writable, Writable> entry : value.entrySet()) {
+					IntWritable count = (IntWritable) entry.getValue();
+					IntWritable current_Count = (IntWritable) result_to_Map.get(entry.getKey());
+					if (current_Count == null) {
+						result_to_Map.put(entry.getKey(), new IntWritable(count.get()));
+					}
+					else {
+						int sum_of_count = current_Count.get() + count.get();
+						current_Count.set(sum_of_count);
+					}
+				}
+			}
+			context.write(key,result_to_Map);
 		}
 	}
 
@@ -142,6 +191,37 @@ public class CORStripes extends Configured implements Tool {
 			/*
 			 * TODO: Your implementation goes here.
 			 */
+			 */
+			double totalCount = 0.0;
+		        Map<String, Integer> coOccurrences = new HashMap<>();
+		        
+		        for (MapWritable value : values) {
+		            for (Writable coWord : value.keySet()) {
+		                IntWritable count = (IntWritable) value.get(coWord);
+		                String coWordStr = coWord.toString();
+		                
+		                // Update coOccurrences map without using getOrDefault
+		                if (coOccurrences.containsKey(coWordStr)) {
+		                    coOccurrences.put(coWordStr, coOccurrences.get(coWordStr) + count.get());
+		                } else {
+		                    coOccurrences.put(coWordStr, count.get());
+		                }
+		            }
+		            totalCount++; // Count occurrences of the current key
+		        }
+		
+		        // Calculate correlation coefficient for each co-occurring word
+		        for (Map.Entry<String, Integer> entry : coOccurrences.entrySet()) {
+		            String coWord = entry.getKey();
+		            int coFreq = entry.getValue();
+		            int totalFreq = wordTotalMap.containsKey(coWord) ? wordTotalMap.get(coWord) : 0;
+		
+		            // Ensure totalCount and totalFreq are not zero to avoid division by zero
+		            if (totalCount > 0 && totalFreq > 0) {
+		                double correlation = (double) coFreq / (totalCount * totalFreq);
+		                context.write(new PairOfStrings(key.toString(), coWord), new DoubleWritable(correlation));
+		            }
+		        }
 		}
 	}
 

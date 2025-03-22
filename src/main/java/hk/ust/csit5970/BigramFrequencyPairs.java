@@ -53,6 +53,24 @@ public class BigramFrequencyPairs extends Configured implements Tool {
 			/*
 			 * TODO: Your implementation goes here.
 			 */
+			if (words.length > 1){
+				String last_word = words[0];
+				for (int i = 1; i < words.length; i++) {
+					String w = words[i];
+					// Skip empty words
+					if (w.length() == 0) {
+						continue;
+					}
+					// "I am" 1
+					BIGRAM.set(last_word, w);
+					context.write(BIGRAM, ONE);
+					// "I " 1
+					BIGRAM.set(last_word,"");
+					context.write(BIGRAM, ONE);
+					// set last word
+					last_word = w;
+				}
+			}
 		}
 	}
 
@@ -71,6 +89,28 @@ public class BigramFrequencyPairs extends Configured implements Tool {
 			/*
 			 * TODO: Your implementation goes here.
 			 */
+			int count = 0;
+		    Iterator<IntWritable> iter = values.iterator();
+		    while (iter.hasNext()) {
+		        count += iter.next().get();
+		    }
+		    if (key.getRightElement().equals("")) {
+		        // Update marginal counts for the left element
+		        marginalCounts.put(key.getLeftElement(), count);
+		        int marginal_count = marginalCounts.get(key.getLeftElement());
+		        VALUE.set((float)marginal_count);
+		        context.write(key,VALUE);
+		        
+		    } else {
+		    	// Calculate and output relative frequency for bigrams
+		        if (marginalCounts.containsKey(key.getLeftElement())) {
+		            int marginal_count = marginalCounts.get(key.getLeftElement());
+		            if (marginal_count > 0) {
+		                VALUE.set((float) count / marginal_count); //divide number of occurrences of all the bigrams that start with "A"
+		                context.write(key, VALUE);
+		            }
+		        } 
+		    }
 		}
 	}
 	
@@ -84,6 +124,12 @@ public class BigramFrequencyPairs extends Configured implements Tool {
 			/*
 			 * TODO: Your implementation goes here.
 			 */
+			int sum = 0;
+		    for (IntWritable value : values) {
+		        sum += value.get();
+		    }
+		    SUM.set(sum);
+		    context.write(key, SUM);
 		}
 	}
 

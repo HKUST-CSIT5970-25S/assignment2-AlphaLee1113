@@ -54,6 +54,22 @@ public class BigramFrequencyStripes extends Configured implements Tool {
 			/*
 			 * TODO: Your implementation goes here.
 			 */
+			if (words.length > 1){
+				KEY.set( words[0]);
+				for (int i = 1; i < words.length; i++) {
+					String w = words[i];
+					// Skip empty words
+					if (w.length() == 0) {
+						continue;
+					}
+					STRIPE.increment(w);
+					context.write(KEY, STRIPE);
+					STRIPE.increment("");
+					context.write(KEY, STRIPE);
+					KEY.set(w);
+					STRIPE.clear();
+				}
+			}
 		}
 	}
 
@@ -75,6 +91,39 @@ public class BigramFrequencyStripes extends Configured implements Tool {
 			/*
 			 * TODO: Your implementation goes here.
 			 */
+			Iterator<HashMapStringIntWritable> iter = stripes.iterator();
+			String first_w = key.toString();
+			while (iter.hasNext()) {
+				SUM_STRIPES.plus(iter.next());
+			}
+	        for (Entry<String, Integer> mapping_element : SUM_STRIPES.entrySet()) { 
+	            String second_w = (String) mapping_element.getKey(); 
+	            if (second_w.equals("")){
+	            	count = (int) mapping_element.getValue();
+	            	BIGRAM.set(first_w, second_w);
+	            	FREQ.set((float)count);
+	            	context.write(BIGRAM, FREQ);
+	            }
+	            else{
+					continue;
+				} 
+	        }
+			
+	        for (Entry<String, Integer> mapping_element : SUM_STRIPES.entrySet()) { 
+	            String second_w = (String) mapping_element.getKey(); 
+	            if (second_w.equals("")){	//empty string
+	            	continue;
+	            }
+	            else{
+					int value = (int) mapping_element.getValue();
+					BIGRAM.set(first_w, second_w);
+					FREQ.set((float) value / ((int)2* count));
+					context.write(BIGRAM, FREQ);
+	            }
+	        }
+	        
+	        SUM_STRIPES.clear();
+		
 		}
 	}
 
@@ -94,6 +143,15 @@ public class BigramFrequencyStripes extends Configured implements Tool {
 			/*
 			 * TODO: Your implementation goes here.
 			 */
+			Iterator<HashMapStringIntWritable> iter = stripes.iterator();
+
+			while (iter.hasNext()) {
+				for ( String second_w : iter.next().keySet() ) {
+					SUM_STRIPES.increment(second_w);
+				}
+			}
+			context.write(key, SUM_STRIPES);
+			SUM_STRIPES.clear();
 		}
 	}
 
