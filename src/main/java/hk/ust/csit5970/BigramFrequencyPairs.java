@@ -96,7 +96,7 @@ public class BigramFrequencyPairs extends Configured implements Tool {
 		    while (iter.hasNext()) {
 		        count += iter.next().get();
 		    }
-		    if (key.getRightElement().equals("")) {
+		    if (key.getRightElement().toString().equals("")) {
 		        Marginal_Counts.put(key.getLeftElement(), count);
 		        int marginal_count = Marginal_Counts.get(key.getLeftElement());
 		        VALUE.set((float)marginal_count);

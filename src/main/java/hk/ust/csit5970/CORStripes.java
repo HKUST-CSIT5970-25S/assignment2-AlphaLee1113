@@ -128,6 +128,7 @@ public class CORStripes extends Configured implements Tool {
 			for (MapWritable value : values) {
 				for (Map.Entry<Writable, Writable> entry : value.entrySet()) {
 					IntWritable count = (IntWritable) entry.getValue();
+
 					IntWritable current_Count = (IntWritable) result_to_Map.get(entry.getKey());
 					if (current_Count == null) {
 						result_to_Map.put(entry.getKey(), new IntWritable(count.get()));
@@ -192,33 +193,30 @@ public class CORStripes extends Configured implements Tool {
 			/*
 			 * TODO: Your implementation goes here.
 			 */
-			double totalCount = 0.0;
-		        Map<String, Integer> coOccurrences = new HashMap<String, Integer>();
+				double totalCount = 0.0;
+		        Map<String, Integer> co_occurrences = new HashMap<String, Integer>();
 		        
 		        for (MapWritable value : values) {
 		            for (Writable coWord : value.keySet()) {
-		                IntWritable count = (IntWritable) value.get(coWord);
 		                String coWordStr = coWord.toString();
+						IntWritable count = (IntWritable) value.get(coWord);
 		                
-		                // Update coOccurrences map without using getOrDefault
-		                if (coOccurrences.containsKey(coWordStr)) {
-		                    coOccurrences.put(coWordStr, coOccurrences.get(coWordStr) + count.get());
+		                if (co_occurrences.containsKey(coWordStr)) {
+		                    co_occurrences.put(coWordStr, co_occurrences.get(coWordStr) + count.get());
 		                } else {
-		                    coOccurrences.put(coWordStr, count.get());
+		                    co_occurrences.put(coWordStr, count.get());
 		                }
 		            }
-		            totalCount++; // Count occurrences of the current key
+		            totalCount++; 
 		        }
 		
-		        // Calculate correlation coefficient for each co-occurring word
-		        for (Map.Entry<String, Integer> entry : coOccurrences.entrySet()) {
-		            String coWord = entry.getKey();
-		            int coFreq = entry.getValue();
+		        for (Map.Entry<String, Integer> entry : co_occurrences.entrySet()) {
+					String coWord = entry.getKey();
 		            int totalFreq = word_total_map.containsKey(coWord) ? word_total_map.get(coWord) : 0;
+					int co_Frequency = entry.getValue();
 		
-		            // Ensure totalCount and totalFreq are not zero to avoid division by zero
 		            if (totalCount > 0 && totalFreq > 0) {
-		                double correlation = (double) coFreq / (totalCount * totalFreq);
+		                double correlation = (double) co_Frequency / (totalCount * totalFreq);
 		                context.write(new PairOfStrings(key.toString(), coWord), new DoubleWritable(correlation));
 		            }
 		        }

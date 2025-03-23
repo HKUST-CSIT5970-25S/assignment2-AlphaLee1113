@@ -80,8 +80,8 @@ public class CORPairs extends Configured implements Tool {
 			 * TODO: Your implementation goes here.
 			 */
 			int sum_count = 0;
-		    	for (IntWritable value : values) {
-		        	sum_count += value.get();
+			for (IntWritable value : values) {
+				sum_count += value.get();
 		    }
 		    context.write(key, new IntWritable(sum_count));
 		}
@@ -103,30 +103,31 @@ public class CORPairs extends Configured implements Tool {
 			 * TODO: Your implementation goes here.
 			 */
 			HashSet<String> unique_Words = new HashSet<String>();
-		        while (doc_tokenizer.hasMoreTokens()) {
-		            unique_Words.add(doc_tokenizer.nextToken());
-		        }
-		        String[] words = unique_Words.toArray(new String[0]);
-		        for (int x = 0; x < words.length; x++) {
-		            for (int y = x + 1; y < words.length; y++) {
-		                String word_1 = words[x];
-		                String word_2 = words[y];
-						//Compare to see which one go first
-						String first;
-						String second;
+			while (doc_tokenizer.hasMoreTokens()) {
+				unique_Words.add(doc_tokenizer.nextToken());
+			}
+			String[] words = unique_Words.toArray(new String[0]);
 
-						if (word_1.compareTo(word_2) < 0) {
-							first = word_1;
-							second = word_2;
-						} else {
-							first = word_2;
-							second = word_1;
-						}
-						//emit the pair
-		                pair.set(first,second);
-		                context.write(pair, ONE);
-		            }
-				}  
+			for (int x = 0; x < words.length; x++) {
+				for (int y = x + 1; y < words.length; y++) {
+					String word_1 = words[x];
+					String word_2 = words[y];
+					//Compare to see which one go first
+					String first;
+					String second;
+
+					if (word_1.compareTo(word_2) < 0) {
+						first = word_1;
+						second = word_2;
+					} else {
+						first = word_2;
+						second = word_1;
+					}
+					//emit the pair
+					pair.set(first,second);
+					context.write(pair, ONE);
+				}
+			}  
 		}
 	}
 
@@ -207,7 +208,7 @@ public class CORPairs extends Configured implements Tool {
 			}
 
 			// only calculate when both word frequency is larger than 0
-		   	if (freqA != null && freqB != null && freqA > 0 && freqB > 0) {
+		   	if (freqA > 0 && freqB > 0 && freqA != null && freqB != null) {
 				//calculate the correlation
 				context.write(key, new DoubleWritable((double) freq_Bigram / (freqA * freqB)));
 			}

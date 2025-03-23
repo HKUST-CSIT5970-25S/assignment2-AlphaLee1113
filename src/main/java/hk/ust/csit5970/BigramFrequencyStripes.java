@@ -57,13 +57,15 @@ public class BigramFrequencyStripes extends Configured implements Tool {
 			 * TODO: Your implementation goes here.
 			 */
 			if (words.length > 1){
-				KEY.set( words[0]);
+				KEY.set(words[0]);
 				for (int i = 1; i < words.length; i++) {
 					String w = words[i];
 					// Skip empty words
 					if (w.length() == 0) {
 						continue;
 					}
+					STRIPE.clear();
+					
 					//increase count for Bigram
 					STRIPE.increment(w);
 					context.write(KEY, STRIPE);
@@ -72,6 +74,7 @@ public class BigramFrequencyStripes extends Configured implements Tool {
 					context.write(KEY, STRIPE);
 					//set the key as the current wird
 					KEY.set(w);
+
 					STRIPE.clear();
 				}
 			}
