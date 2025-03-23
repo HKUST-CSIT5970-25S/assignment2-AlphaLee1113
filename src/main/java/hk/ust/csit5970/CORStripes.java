@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.*;
+import java.util.Iterator;
 
 /**
  * Compute the bigram count using "pairs" approach
@@ -213,7 +214,7 @@ public class CORStripes extends Configured implements Tool {
 		        for (Map.Entry<String, Integer> entry : coOccurrences.entrySet()) {
 		            String coWord = entry.getKey();
 		            int coFreq = entry.getValue();
-		            int totalFreq = wordTotalMap.containsKey(coWord) ? wordTotalMap.get(coWord) : 0;
+		            int totalFreq = word_total_map.containsKey(coWord) ? word_total_map.get(coWord) : 0;
 		
 		            // Ensure totalCount and totalFreq are not zero to avoid division by zero
 		            if (totalCount > 0 && totalFreq > 0) {
