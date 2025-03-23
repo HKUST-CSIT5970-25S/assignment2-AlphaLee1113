@@ -191,7 +191,6 @@ public class CORStripes extends Configured implements Tool {
 			/*
 			 * TODO: Your implementation goes here.
 			 */
-			 */
 			double totalCount = 0.0;
 		        Map<String, Integer> coOccurrences = new HashMap<>();
 		        
