@@ -53,8 +53,8 @@ public class CORStripes extends Configured implements Tool {
 				}
 			}
 
-			for (Map.Entry<String, Integer> entry : word_set.entrySet()) {
-				context.write(new Text(entry.getKey()), new IntWritable(entry.getValue()));
+			for (Map.Entry<String, Integer> single_entry : word_set.entrySet()) {
+				context.write(new Text(single_entry.getKey()), new IntWritable(single_entry.getValue()));
 			}
 
 		}
@@ -71,8 +71,8 @@ public class CORStripes extends Configured implements Tool {
 			 * TODO: Your implementation goes here.
 			 */
 			int sum_count = 0;
-			for (IntWritable val : values) {
-				sum_count += val.get();
+			for (IntWritable value : values) {
+				sum_count += value.get();
 			}
 			context.write(key, new IntWritable(sum_count));
 		}

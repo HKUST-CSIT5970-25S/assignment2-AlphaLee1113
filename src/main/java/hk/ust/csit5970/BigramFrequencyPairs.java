@@ -82,8 +82,8 @@ public class BigramFrequencyPairs extends Configured implements Tool {
 			Reducer<PairOfStrings, IntWritable, PairOfStrings, FloatWritable> {
 
 		// Reuse objects.
+		private HashMapStringIntWritable Marginal_Counts = new HashMapStringIntWritable();
 		private final static FloatWritable VALUE = new FloatWritable();
-		private HashMapStringIntWritable marginalCounts = new HashMapStringIntWritable();
 
 		@Override
 		public void reduce(PairOfStrings key, Iterable<IntWritable> values,
@@ -97,18 +97,16 @@ public class BigramFrequencyPairs extends Configured implements Tool {
 		        count += iter.next().get();
 		    }
 		    if (key.getRightElement().equals("")) {
-		        // Update marginal counts for the left element
-		        marginalCounts.put(key.getLeftElement(), count);
-		        int marginal_count = marginalCounts.get(key.getLeftElement());
+		        Marginal_Counts.put(key.getLeftElement(), count);
+		        int marginal_count = Marginal_Counts.get(key.getLeftElement());
 		        VALUE.set((float)marginal_count);
 		        context.write(key,VALUE);
 		        
 		    } else {
-		    	// Calculate and output relative frequency for bigrams
-		        if (marginalCounts.containsKey(key.getLeftElement())) {
-		            int marginal_count = marginalCounts.get(key.getLeftElement());
+		        if (Marginal_Counts.containsKey(key.getLeftElement())) {
+		            int marginal_count = Marginal_Counts.get(key.getLeftElement());
 		            if (marginal_count > 0) {
-		                VALUE.set((float) count / marginal_count); //divide number of occurrences of all the bigrams that start with "A"
+		                VALUE.set((float) count / Marginal_Counts.get(key.getLeftElement())); //divide number of occurrences of all the bigrams that start with "A"
 		                context.write(key, VALUE);
 		            }
 		        } 

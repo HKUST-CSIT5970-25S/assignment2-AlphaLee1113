@@ -63,8 +63,8 @@ public class CORPairs extends Configured implements Tool {
 		        	}
 			}
 
-			for (Map.Entry<String, Integer> entry : word_set.entrySet()) {
-				context.write(new Text(entry.getKey()), new IntWritable(entry.getValue()));
+			for (Map.Entry<String, Integer> single_entry : word_set.entrySet()) {
+				context.write(new Text(single_entry.getKey()), new IntWritable(single_entry.getValue()));
 			}
 		}
 	}
@@ -80,8 +80,8 @@ public class CORPairs extends Configured implements Tool {
 			 * TODO: Your implementation goes here.
 			 */
 			int sum_count = 0;
-		    	for (IntWritable val : values) {
-		        	sum_count += val.get();
+		    	for (IntWritable value : values) {
+		        	sum_count += value.get();
 		    }
 		    context.write(key, new IntWritable(sum_count));
 		}
@@ -102,18 +102,26 @@ public class CORPairs extends Configured implements Tool {
 			/*
 			 * TODO: Your implementation goes here.
 			 */
-			HashSet<String> uniqueWords = new HashSet<String>();
+			HashSet<String> unique_Words = new HashSet<String>();
 		        while (doc_tokenizer.hasMoreTokens()) {
-		            uniqueWords.add(doc_tokenizer.nextToken());
+		            unique_Words.add(doc_tokenizer.nextToken());
 		        }
-		        String[] words = uniqueWords.toArray(new String[0]);
-		        for (int i = 0; i < words.length; i++) {
-		            for (int j = i + 1; j < words.length; j++) {
-		                String word_1 = words[i];
-		                String word_2 = words[j];
+		        String[] words = unique_Words.toArray(new String[0]);
+		        for (int x = 0; x < words.length; x++) {
+		            for (int y = x + 1; y < words.length; y++) {
+		                String word_1 = words[x];
+		                String word_2 = words[y];
 						//Compare to see which one go first
-		                String first = word_1.compareTo(word_2) < 0 ? word_1 : word_2;
-		                String second = word_1.compareTo(word_2) < 0 ? word_2 : word_1;
+						String first;
+						String second;
+
+						if (word_1.compareTo(word_2) < 0) {
+							first = word_1;
+							second = word_2;
+						} else {
+							first = word_2;
+							second = word_1;
+						}
 						//emit the pair
 		                pair.set(first,second);
 		                context.write(pair, ONE);
@@ -188,18 +196,20 @@ public class CORPairs extends Configured implements Tool {
 			/*
 			 * TODO: Your implementation goes here.
 			 */
-			int freqAB = 0;
-			for (IntWritable value : values) {
-				freqAB += value.get();
-			}
-
+			//get the word A and B frequency
 			Integer freqA = word_total_map.get(key.getLeftElement());
 			Integer freqB = word_total_map.get(key.getRightElement());
 
+			int freq_Bigram = 0;
+			//sum up the value of the value in same key
+			for (IntWritable value : values) {
+				freq_Bigram += value.get();
+			}
+
+			// only calculate when both word frequency is larger than 0
 		   	if (freqA != null && freqB != null && freqA > 0 && freqB > 0) {
 				//calculate the correlation
-				double correlation = (double) freqAB / (freqA * freqB);
-				context.write(key, new DoubleWritable(correlation));
+				context.write(key, new DoubleWritable((double) freq_Bigram / (freqA * freqB)));
 			}
 		}
 	}

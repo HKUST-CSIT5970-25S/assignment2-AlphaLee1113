@@ -64,10 +64,13 @@ public class BigramFrequencyStripes extends Configured implements Tool {
 					if (w.length() == 0) {
 						continue;
 					}
+					//increase count for Bigram
 					STRIPE.increment(w);
 					context.write(KEY, STRIPE);
+					//increase count for single word
 					STRIPE.increment("");
 					context.write(KEY, STRIPE);
+					//set the key as the current wird
 					KEY.set(w);
 					STRIPE.clear();
 				}
@@ -86,7 +89,7 @@ public class BigramFrequencyStripes extends Configured implements Tool {
 		private final static PairOfStrings BIGRAM = new PairOfStrings();
 		private final static FloatWritable FREQ = new FloatWritable();
 		private static int count;
-		
+
 		@Override
 		public void reduce(Text key,
 				Iterable<HashMapStringIntWritable> stripes, Context context)
@@ -102,9 +105,12 @@ public class BigramFrequencyStripes extends Configured implements Tool {
 	        for (Entry<String, Integer> mapping_element : SUM_STRIPES.entrySet()) { 
 	            String second_w = (String) mapping_element.getKey(); 
 	            if (second_w.equals("")){
+					//find the frequency
 	            	count = (int) mapping_element.getValue();
+					FREQ.set((float)count);
+					// set up the bigram
 	            	BIGRAM.set(first_w, second_w);
-	            	FREQ.set((float)count);
+	            	//write the record
 	            	context.write(BIGRAM, FREQ);
 	            }
 	            else{
@@ -118,9 +124,12 @@ public class BigramFrequencyStripes extends Configured implements Tool {
 	            	continue;
 	            }
 	            else{
+					//calculate the final answer
 					int value = (int) mapping_element.getValue();
-					BIGRAM.set(first_w, second_w);
 					FREQ.set((float) value / ((int)2* count));
+					// set up the bigram
+					BIGRAM.set(first_w, second_w);
+					//emit the record
 					context.write(BIGRAM, FREQ);
 	            }
 	        }
@@ -149,10 +158,11 @@ public class BigramFrequencyStripes extends Configured implements Tool {
 			Iterator<HashMapStringIntWritable> iter = stripes.iterator();
 
 			while (iter.hasNext()) {
-				for ( String second_w : iter.next().keySet() ) {
-					SUM_STRIPES.increment(second_w);
+				for ( String next_word : iter.next().keySet() ) {
+					SUM_STRIPES.increment(next_word);
 				}
 			}
+			// combine the stripes with same key tgt
 			context.write(key, SUM_STRIPES);
 			SUM_STRIPES.clear();
 		}
